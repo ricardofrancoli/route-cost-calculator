@@ -1,21 +1,103 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
-const FormInput = ({ route }) => {
-	const [distance, setDistance] = useState(0);
-	const [price, setPrice] = useState(0);
+import axios from 'axios';
+
+const api_key = process.env.REACT_APP_API_KEY;
+
+const FormInput = () => {
+	const [origin, setOrigin] = useState('');
+	const [destination, setDestination] = useState('');
+	const [result, setResult] = useState('');
+	const [data, setData] = useState({
+		originName: '',
+		destinationName: '',
+		originLngLat: '',
+		destinationLngLat: '',
+		distance: 0,
+		pricePerKm: 0,
+	});
 	const [totalCost, setTotalCost] = useState(0);
 
-	const handleDistance = (event) => {
-		setDistance(event.target.value);
+	console.log(data);
+
+	useEffect(() => {
+		let townSearch;
+		origin ? (townSearch = origin) : (townSearch = destination);
+		if (townSearch) {
+			axios
+				.get('http://secure.geonames.org/searchJSON?', {
+					params: {
+						q: townSearch,
+						orderby: 'relevance',
+						cities: 'cities5000',
+						username: api_key,
+					},
+				})
+				.then((response) => {
+					const townResult = response.data.geonames[0];
+					setResult(townResult);
+				});
+		}
+	}, [origin, destination]);
+
+	const fetchMapData = async () => {
+		if (data.originLngLat && data.destinationLngLat) {
+			axios
+				.get(
+					`https://router.project-osrm.org/route/v1/driving/${data.originLngLat};${data.destinationLngLat}`
+				)
+				.then((response) => {
+					try {
+						console.log(response);
+					} catch (err) {
+						console.log(err);
+					}
+				});
+		}
 	};
 
-	const handlePrice = (event) => {
-		setPrice(event.target.value);
+	useEffect(() => {
+		fetchMapData();
+	}, []);
+
+	const handleChange = (event) => {
+		const value = event.target.value;
+		setData({
+			...data,
+			[event.target.name]: value,
+		});
+	};
+
+	const handleOrigin = (event) => {
+		setOrigin(event.target.value);
+	};
+
+	const handleDestination = (event) => {
+		setDestination(event.target.value);
 	};
 
 	const handleSubmit = (event) => {
 		event.preventDefault();
-		setTotalCost(distance * price);
+		fetchMapData();
+		setTotalCost(data.distance * data.pricePerKm);
+	};
+
+	const handleClick = () => {
+		console.log(result);
+		origin
+			? setData((data) => ({
+					...data,
+					originName: result.toponymName,
+					originLngLat: `${result.lng},${result.lat}`,
+			  }))
+			: setData((data) => ({
+					...data,
+					destinationName: result.toponymName,
+					destinationLngLat: `${result.lng},${result.lat}`,
+			  }));
+
+		setOrigin('');
+		setDestination('');
 	};
 
 	return (
@@ -26,7 +108,9 @@ const FormInput = ({ route }) => {
 					<input
 						type='number'
 						placeholder='distance in km'
-						onChange={handleDistance}
+						name='distance'
+						value={data.distance}
+						onChange={handleChange}
 					></input>
 				</label>
 				<label>
@@ -35,13 +119,43 @@ const FormInput = ({ route }) => {
 						type='number'
 						step='0.01'
 						placeholder='price per km'
-						onChange={handlePrice}
+						name='pricePerKm'
+						value={data.pricePerKm}
+						onChange={handleChange}
+					></input>
+				</label>
+				<button>Submit</button>
+			</form>
+			<br />
+			<form onSubmit={handleSubmit}>
+				<label>
+					From:
+					<input placeholder='NS' onChange={handleOrigin}></input>
+					<button onClick={handleClick}>Add</button>
+				</label>
+				<label>
+					To:
+					<input placeholder='WE' onChange={handleDestination}></input>
+					<button onClick={handleClick}>Add</button>
+				</label>
+				<label>
+					Price per Km:
+					<input
+						type='number'
+						step='0.01'
+						placeholder='price per km'
+						name='pricePerKm'
+						value={data.pricePerKm}
+						onChange={handleChange}
 					></input>
 				</label>
 				<button>Submit</button>
 			</form>
 			<h3>It will cost you:</h3>
-			<p>{totalCost}</p>
+			<p>
+				From {data.originName} to {data.destinationName} it will cost you €
+				{totalCost}
+			</p>
 		</div>
 	);
 };
