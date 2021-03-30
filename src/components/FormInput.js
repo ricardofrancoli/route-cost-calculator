@@ -13,7 +13,7 @@ const FormInput = () => {
 		destinationName: '',
 		originLngLat: '',
 		destinationLngLat: '',
-		distance: 0,
+		distanceInKm: 0,
 		pricePerKm: 0,
 	});
 	const [totalCost, setTotalCost] = useState(0);
@@ -48,7 +48,8 @@ const FormInput = () => {
 				)
 				.then((response) => {
 					try {
-						console.log(response);
+						const distance = response.data.routes[0].distance / 1000;
+						setData({ ...data, distanceInKm: distance });
 					} catch (err) {
 						console.log(err);
 					}
@@ -61,7 +62,10 @@ const FormInput = () => {
 	}, []);
 
 	const handleChange = (event) => {
-		const value = event.target.value;
+		let value = event.target.value;
+
+		if (event.target.type === 'number') value = parseFloat(value).toFixed(2);
+
 		setData({
 			...data,
 			[event.target.name]: value,
@@ -79,7 +83,10 @@ const FormInput = () => {
 	const handleSubmit = (event) => {
 		event.preventDefault();
 		fetchMapData();
-		setTotalCost(data.distance * data.pricePerKm);
+		const totalCostCalculation = (data.distanceInKm * data.pricePerKm).toFixed(
+			2
+		);
+		setTotalCost(totalCostCalculation);
 	};
 
 	const handleClick = () => {
@@ -102,7 +109,7 @@ const FormInput = () => {
 
 	return (
 		<div>
-			<form onSubmit={handleSubmit}>
+			{/* <form onSubmit={handleSubmit}>
 				<label>
 					Distance in Km:
 					<input
@@ -118,6 +125,7 @@ const FormInput = () => {
 					<input
 						type='number'
 						step='0.01'
+						min='0'
 						placeholder='price per km'
 						name='pricePerKm'
 						value={data.pricePerKm}
@@ -125,17 +133,21 @@ const FormInput = () => {
 					></input>
 				</label>
 				<button>Submit</button>
-			</form>
+			</form> */}
 			<br />
 			<form onSubmit={handleSubmit}>
 				<label>
 					From:
-					<input placeholder='NS' onChange={handleOrigin}></input>
+					<input name='origin' placeholder='NS' onChange={handleOrigin}></input>
 					<button onClick={handleClick}>Add</button>
 				</label>
 				<label>
 					To:
-					<input placeholder='WE' onChange={handleDestination}></input>
+					<input
+						name='destination'
+						placeholder='WE'
+						onChange={handleDestination}
+					></input>
 					<button onClick={handleClick}>Add</button>
 				</label>
 				<label>
@@ -143,6 +155,7 @@ const FormInput = () => {
 					<input
 						type='number'
 						step='0.01'
+						min='0'
 						placeholder='price per km'
 						name='pricePerKm'
 						value={data.pricePerKm}
