@@ -15,18 +15,20 @@ const AdvancedForm = ({
 			<label>
 				From:
 				<input
-					name='origin'
+					name='originName'
 					placeholder='origin'
-					onChange={handleOrigin}
+					// onChange={handleOrigin}
+					onChange={handleChange}
 				></input>
 				<button onClick={handleClick}>Add</button>
 			</label>
 			<label>
 				To:
 				<input
-					name='destination'
+					name='destinationName'
 					placeholder='destination'
-					onChange={handleDestination}
+					// onChange={handleDestination}
+					onChange={handleChange}
 				></input>
 				<button onClick={handleClick}>Add</button>
 			</label>

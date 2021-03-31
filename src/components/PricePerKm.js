@@ -10,8 +10,7 @@ const PricePerKm = ({ value, handleChange }) => {
 				min='0'
 				placeholder='price per km'
 				name='pricePerKm'
-				// value={data.pricePerKm}
-				value={value}
+				defaultValue={value}
 				onChange={handleChange}
 			></input>
 		</label>
