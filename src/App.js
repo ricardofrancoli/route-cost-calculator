@@ -19,21 +19,21 @@ const App = () => {
 		pricePerKm: 0,
 	});
 
-	const [totalCost, setTotalCost] = useState(0);
+	const defaultRates = {
+		van: 0.25,
+		lorry: 0.5,
+	};
 
-	// const [searchResult, setSearchResult] = useState('');
-	// const [townSearch, setTownSearch] = useState('');
-	// const [origin, setOrigin] = useState('');
-	// const [destination, setDestination] = useState('');
+	// Calculate total cost and give back a result with 2 decimals
+	let priceCalculation = (distance, price) =>
+		parseFloat(distance * price).toFixed(2);
+	let totalCost = priceCalculation(data.distanceInKm, data.pricePerKm);
+	let vanTotalCost = priceCalculation(data.distanceInKm, defaultRates.van);
+	let lorryTotalCost = priceCalculation(data.distanceInKm, defaultRates.lorry);
 
 	const [isManual, setIsManual] = useState(true);
 	const [showResult, setShowResult] = useState(false);
 
-	console.log(data);
-
-	// console.log(townSearch);
-
-	// let townSearch;
 	const fetchTownInfo = async (townSearch, direction) => {
 		axios
 			.get('http://secure.geonames.org/searchJSON?', {
@@ -45,21 +45,22 @@ const App = () => {
 				},
 			})
 			.then((response) => {
-				const townResult = response.data.geonames[0];
-				console.log(townResult);
-				// setSearchResult(townResult);
-				if (townResult) {
-					direction === 'originName'
-						? setData({
-								...data,
-								originName: townResult.toponymName,
-								originLngLat: `${townResult.lng},${townResult.lat}`,
-						  })
-						: setData({
-								...data,
-								destinationName: townResult.toponymName,
-								destinationLngLat: `${townResult.lng},${townResult.lat}`,
-						  });
+				try {
+					const townResult = response.data.geonames[0];
+					if (townResult) {
+						setData({ ...data, [direction]: townResult.toponymName });
+						direction === 'originName'
+							? setData({
+									...data,
+									originLngLat: `${townResult.lng},${townResult.lat}`,
+							  })
+							: setData({
+									...data,
+									destinationLngLat: `${townResult.lng},${townResult.lat}`,
+							  });
+					}
+				} catch (err) {
+					console.log(err);
 				}
 			});
 	};
@@ -95,12 +96,9 @@ const App = () => {
 	const handleChange = (event) => {
 		let value = event.target.value;
 		let name = event.target.name;
-		console.log(value);
 
 		if (name === 'originName' || name === 'destinationName') {
-			console.log('hell');
 			fetchTownInfo(value, name);
-			// setTownSearch(value);
 			return;
 		}
 
@@ -110,14 +108,6 @@ const App = () => {
 		});
 	};
 
-	// const handleOrigin = (event) => {
-	// 	setOrigin(event.target.value);
-	// };
-
-	// const handleDestination = (event) => {
-	// 	setDestination(event.target.value);
-	// };
-
 	const handleSubmit = (event) => {
 		event.preventDefault();
 
@@ -125,73 +115,57 @@ const App = () => {
 			fetchMapData();
 		}
 
-		// Calculate total cost and give back a result with 2 decimals
-		const totalCostCalc = parseFloat(
-			data.distanceInKm * data.pricePerKm
-		).toFixed(2);
-		setTotalCost(totalCostCalc);
-		console.log(totalCost);
 		setShowResult(true);
 	};
-
-	// const handleClick = (event) => {
-	// 	event.preventDefault();
-	// 	console.log(event.target.name);
-	// 	// Check whether the input is for the origin or the destination and change the 'data' state accordingly
-	// 	origin
-	// 		? setData({
-	// 				...data,
-	// 				originName: searchResult.toponymName,
-	// 				originLngLat: `${searchResult.lng},${searchResult.lat}`,
-	// 		  })
-	// 		: setData({
-	// 				...data,
-	// 				destinationName: searchResult.toponymName,
-	// 				destinationLngLat: `${searchResult.lng},${searchResult.lat}`,
-	// 		  });
-
-	// 	// setOrigin('');
-	// 	// setDestination('');
-	// };
 
 	const switchManual = () => {
 		setIsManual(!isManual);
 		setShowResult(false);
 	};
 
-	const resultComponent = (
-		<Result distanceInKm={data.distanceInKm} totalCost={totalCost} />
+	const manualFormComponent = (
+		<ManualForm
+			handleSubmit={handleSubmit}
+			handleChange={handleChange}
+			value={{
+				distanceInKm: data.distanceInKm,
+				pricePerKm: data.pricePerKm,
+			}}
+		/>
 	);
 
-	if (isManual) {
-		return (
-			<>
-				<ManualForm
-					handleSubmit={handleSubmit}
-					handleChange={handleChange}
-					value={{
-						distanceInKm: data.distanceInKm,
-						pricePerKm: data.pricePerKm,
-					}}
-				/>
-				<Button onClick={switchManual}>Click</Button>
-				{showResult && resultComponent}
-			</>
-		);
-	}
+	const advancedFormComponent = (
+		<AdvancedForm
+			handleSubmit={handleSubmit}
+			handleChange={handleChange}
+			value={data.pricePerKm}
+		/>
+	);
+
+	const resultComponent = (
+		<Result
+			distanceInKm={data.distanceInKm}
+			totalCost={totalCost}
+			pricePerKm={data.pricePerKm}
+			defaultRate={{
+				van: vanTotalCost,
+				lorry: lorryTotalCost,
+			}}
+		/>
+	);
 
 	return (
 		<>
-			<AdvancedForm
-				// handleClick={handleClick}
-				// handleOrigin={handleOrigin}
-				// handleDestination={handleDestination}
-				handleSubmit={handleSubmit}
-				handleChange={handleChange}
-				value={data.pricePerKm}
-			/>
+			<h1>Route Cost Calculator</h1>
 			<Button onClick={switchManual}>Click</Button>
-			{data.originName} {data.destinationName}
+			{isManual ? manualFormComponent : advancedFormComponent}
+			<div>
+				<p>Default rates</p>
+				<ul>
+					<li>Van – €0.25/Km</li>
+					<li>Lorry – €0.50/Km</li>
+				</ul>
+			</div>
 			{showResult && resultComponent}
 		</>
 	);
