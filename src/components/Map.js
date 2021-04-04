@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from 'react';
-import mapboxgl from 'mapbox-gl';
+// eslint-disable-next-line import/no-webpack-loader-syntax
+import mapboxgl from '!mapbox-gl';
 
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -37,7 +38,11 @@ const Map = ({ origin, destination, distanceInKm }) => {
 		map.fitBounds(bounds, { padding: 30 });
 	}, [origin, destination, distanceInKm]);
 
-	return <div className='map-container' ref={mapContainer} />;
+	return (
+		<div className='map-container'>
+			<div className='map' ref={mapContainer} />
+		</div>
+	);
 };
 
 export default Map;

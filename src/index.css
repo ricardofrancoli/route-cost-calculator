@@ -10,14 +10,17 @@ code {
 		monospace;
 }
 
-.mapboxgl-map {
-	position: absolute;
+.map-container {
+	display: flex;
+	justify-content: center;
+	min-width: 100vw;
+	margin: 20px 0;
 }
 
-.map-container {
+.mapboxgl-map,
+.map {
 	width: 50vw;
-	height: 50vh;
-	margin: 20px 0;
+	height: 40vh;
 }
 
 p {
