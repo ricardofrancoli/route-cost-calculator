@@ -38,7 +38,7 @@ const FormInput = () => {
 	// If using AdvancedForm, find coordinates using Geonames.org
 	const fetchTownInfo = async (townSearch, direction) => {
 		axios
-			.get('http://secure.geonames.org/searchJSON?', {
+			.get('https://secure.geonames.org/searchJSON?', {
 				params: {
 					q: townSearch,
 					orderby: 'relevance',
