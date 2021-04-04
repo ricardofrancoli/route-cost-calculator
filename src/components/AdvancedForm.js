@@ -2,7 +2,7 @@ import React from 'react';
 
 import PricePerKm from './PricePerKm';
 
-const AdvancedForm = ({ handleSubmit, handleChange, value }) => {
+const AdvancedForm = ({ handleChange, value }) => {
 	return (
 		<form className='form advanced-form'>
 			<div>

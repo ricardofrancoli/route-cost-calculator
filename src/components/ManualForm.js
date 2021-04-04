@@ -2,7 +2,7 @@ import React from 'react';
 
 import PricePerKm from './PricePerKm';
 
-const ManualForm = ({ handleSubmit, handleChange, value }) => {
+const ManualForm = ({ handleChange, value }) => {
 	return (
 		<form className='form manual-form'>
 			Distance in Km:

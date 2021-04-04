@@ -35,6 +35,7 @@ const FormInput = () => {
 	const [isManual, setIsManual] = useState(true);
 	const [showResult, setShowResult] = useState(false);
 
+	// If using AdvancedForm, find coordinates using Geonames.org
 	const fetchTownInfo = async (townSearch, direction) => {
 		axios
 			.get('http://secure.geonames.org/searchJSON?', {
@@ -72,6 +73,7 @@ const FormInput = () => {
 		fetchTownInfo();
 	}, []);
 
+	// If using AdvancedForm, find route using OSRM.org
 	const fetchMapData = async () => {
 		if (data.originLng && data.destinationLng) {
 			axios
@@ -96,6 +98,7 @@ const FormInput = () => {
 		fetchMapData();
 	}, []);
 
+	// When typing in form, change values from the data state accordingly
 	const handleChange = (event) => {
 		let value = event.target.value;
 		let name = event.target.name;
