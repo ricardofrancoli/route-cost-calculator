@@ -4,25 +4,22 @@ import PricePerKm from './PricePerKm';
 
 const AdvancedForm = ({ handleSubmit, handleChange, value }) => {
 	return (
-		<form onSubmit={handleSubmit}>
-			<label>
-				From:
+		<form className='form advanced-form'>
+			<div>
 				<input
 					name='originName'
 					placeholder='origin'
 					onChange={handleChange}
 				></input>
-			</label>
-			<label>
-				To:
+			</div>
+			<div>
 				<input
 					name='destinationName'
 					placeholder='destination'
 					onChange={handleChange}
 				></input>
-			</label>
+			</div>
 			<PricePerKm value={value} handleChange={handleChange} />
-			<button>Submit</button>
 		</form>
 	);
 };

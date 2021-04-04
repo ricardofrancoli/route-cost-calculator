@@ -38,11 +38,7 @@ const Map = ({ origin, destination }) => {
 		map.fitBounds(bounds, { padding: 30 });
 	}, [origin, destination]);
 
-	return (
-		<div>
-			<div className='map-container' ref={mapContainer} />
-		</div>
-	);
+	return <div className='map-container' ref={mapContainer} />;
 };
 
 export default Map;

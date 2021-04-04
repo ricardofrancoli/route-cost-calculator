@@ -1,12 +1,10 @@
 import React from 'react';
 
-import { Grid, Button } from '@material-ui/core';
-
 import PricePerKm from './PricePerKm';
 
 const ManualForm = ({ handleSubmit, handleChange, value }) => {
 	return (
-		<form onSubmit={handleSubmit}>
+		<form className='form manual-form'>
 			Distance in Km:
 			<input
 				type='number'
@@ -14,11 +12,10 @@ const ManualForm = ({ handleSubmit, handleChange, value }) => {
 				min='0'
 				placeholder='distance in km'
 				name='distanceInKm'
-				vlaue={value.distanceInKm}
+				value={value.distanceInKm}
 				onChange={handleChange}
 			></input>
 			<PricePerKm value={value.pricePerKm} handleChange={handleChange} />
-			<button>Submit</button>
 		</form>
 	);
 };

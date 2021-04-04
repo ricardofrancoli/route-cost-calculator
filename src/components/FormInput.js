@@ -124,6 +124,7 @@ const FormInput = () => {
 	const switchManual = () => {
 		setIsManual(!isManual);
 		setShowResult(false);
+		setData({ ...data, distanceInKm: 0 });
 	};
 
 	const manualFormComponent = (
@@ -160,10 +161,29 @@ const FormInput = () => {
 	return (
 		<>
 			<h1>Route Cost Calculator</h1>
-			<Button onClick={switchManual}>Click</Button>
+			<Button
+				onClick={switchManual}
+				variant='outlined'
+				style={{
+					margin: '20px 0',
+				}}
+			>
+				{isManual ? 'Switch to Origin – Destination' : 'Switch to Manual'}
+			</Button>
 			{isManual ? manualFormComponent : advancedFormComponent}
-			<div>
-				<p>Default rates</p>
+			<Button
+				type='submit'
+				variant='contained'
+				style={{
+					color: '#fffaf0',
+					backgroundColor: '#cc6666',
+					marginBottom: '20px',
+				}}
+				onClick={handleSubmit}
+			>
+				Search
+			</Button>
+			<div className='default-rates'>
 				<ul>
 					<li>Van – €0.25/Km</li>
 					<li>Lorry – €0.50/Km</li>

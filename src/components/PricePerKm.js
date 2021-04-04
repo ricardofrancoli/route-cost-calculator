@@ -2,9 +2,9 @@ import React from 'react';
 
 const PricePerKm = ({ value, handleChange }) => {
 	return (
-		<div>
+		<div className='price-per-km'>
 			<label>
-				Price per Km:
+				<div>Price per Km:</div>
 				<input
 					type='number'
 					step='0.01'
