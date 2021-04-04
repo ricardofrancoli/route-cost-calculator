@@ -40,10 +40,10 @@ const FormInput = () => {
 		axios
 			.get('https://secure.geonames.org/searchJSON?', {
 				params: {
+					username: api_key,
 					q: townSearch,
 					orderby: 'relevance',
 					cities: 'cities5000',
-					username: api_key,
 				},
 			})
 			.then((response) => {
