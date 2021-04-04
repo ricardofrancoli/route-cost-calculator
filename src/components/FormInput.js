@@ -3,59 +3,87 @@ import axios from 'axios';
 
 import ManualForm from './ManualForm';
 import AdvancedForm from './AdvancedForm';
+import Result from './Result';
+import Map from './Map';
+
+import { Button } from '@material-ui/core';
 
 const api_key = process.env.REACT_APP_API_KEY;
 
 const FormInput = () => {
 	const [data, setData] = useState({
-		originName: '',
-		destinationName: '',
-		originLngLat: '',
-		destinationLngLat: '',
+		originLng: '',
+		originLat: '',
+		destinationLng: '',
+		destinationLat: '',
 		distanceInKm: 0,
 		pricePerKm: 0,
 	});
 
-	const [totalCost, setTotalCost] = useState(0);
+	const defaultRates = {
+		van: 0.25,
+		lorry: 0.5,
+	};
 
-	const [searchResult, setSearchResult] = useState('');
-	const [origin, setOrigin] = useState('');
-	const [destination, setDestination] = useState('');
+	// Calculate total cost and give back a result with 2 decimals
+	let priceCalculation = (distance, price) =>
+		parseFloat(distance * price).toFixed(2);
+	let totalCost = priceCalculation(data.distanceInKm, data.pricePerKm);
+	let vanTotalCost = priceCalculation(data.distanceInKm, defaultRates.van);
+	let lorryTotalCost = priceCalculation(data.distanceInKm, defaultRates.lorry);
 
 	const [isManual, setIsManual] = useState(true);
+	const [showResult, setShowResult] = useState(false);
 
-	// console.log(data);
+	const fetchTownInfo = async (townSearch, direction) => {
+		axios
+			.get('http://secure.geonames.org/searchJSON?', {
+				params: {
+					q: townSearch,
+					orderby: 'relevance',
+					cities: 'cities5000',
+					username: api_key,
+				},
+			})
+			.then((response) => {
+				try {
+					const townResult = response.data.geonames[0];
+					if (townResult) {
+						setData({ ...data, [direction]: townResult.toponymName });
+						direction === 'originName'
+							? setData({
+									...data,
+									originLng: townResult.lng,
+									originLat: townResult.lat,
+							  })
+							: setData({
+									...data,
+									destinationLng: townResult.lng,
+									destinationLat: townResult.lat,
+							  });
+					}
+				} catch (err) {
+					console.log(err);
+				}
+			});
+	};
 
 	useEffect(() => {
-		let townSearch;
-		origin ? (townSearch = origin) : (townSearch = destination);
-		if (townSearch) {
-			axios
-				.get('http://secure.geonames.org/searchJSON?', {
-					params: {
-						q: townSearch,
-						orderby: 'relevance',
-						cities: 'cities5000',
-						username: api_key,
-					},
-				})
-				.then((response) => {
-					const townResult = response.data.geonames[0];
-					setSearchResult(townResult);
-				});
-		}
-	}, [origin, destination]);
+		fetchTownInfo();
+	}, []);
 
 	const fetchMapData = async () => {
-		if (data.originLngLat && data.destinationLngLat) {
+		if (data.originLng && data.destinationLng) {
 			axios
 				.get(
-					`https://router.project-osrm.org/route/v1/driving/${data.originLngLat};${data.destinationLngLat}`
+					`https://router.project-osrm.org/route/v1/driving/${data.originLng},${data.originLat};${data.destinationLng},${data.destinationLat}`
 				)
 				.then((response) => {
 					try {
 						// Change API data from 'm' to 'Km'
-						const distance = response.data.routes[0].distance / 1000;
+						const distance = parseFloat(
+							response.data.routes[0].distance / 1000
+						).toFixed(2);
 						setData({ ...data, distanceInKm: distance });
 					} catch (err) {
 						console.log(err);
@@ -70,78 +98,86 @@ const FormInput = () => {
 
 	const handleChange = (event) => {
 		let value = event.target.value;
+		let name = event.target.name;
 
-		if (event.target.type === 'number') value = parseFloat(value).toFixed(2);
+		if (name === 'originName' || name === 'destinationName') {
+			fetchTownInfo(value, name);
+			return;
+		}
 
 		setData({
 			...data,
-			[event.target.name]: value,
+			[name]: value,
 		});
-	};
-
-	const handleOrigin = (event) => {
-		setOrigin(event.target.value);
-	};
-
-	const handleDestination = (event) => {
-		setDestination(event.target.value);
 	};
 
 	const handleSubmit = (event) => {
 		event.preventDefault();
-		fetchMapData();
-		// Calculate total cost and give back a result with 2 decimals
-		const totalCostCalculation = (data.distanceInKm * data.pricePerKm).toFixed(
-			2
-		);
-		setTotalCost(totalCostCalculation);
+
+		if (!isManual) {
+			fetchMapData();
+		}
+
+		setShowResult(true);
 	};
 
-	const handleClick = () => {
-		// Check whether the input is for the origin or the destination and change the 'data' state accordingly
-		origin
-			? setData((data) => ({
-					...data,
-					originName: searchResult.toponymName,
-					originLngLat: `${searchResult.lng},${searchResult.lat}`,
-			  }))
-			: setData((data) => ({
-					...data,
-					destinationName: searchResult.toponymName,
-					destinationLngLat: `${searchResult.lng},${searchResult.lat}`,
-			  }));
-
-		setOrigin('');
-		setDestination('');
+	const switchManual = () => {
+		setIsManual(!isManual);
+		setShowResult(false);
 	};
 
-	if (isManual) {
-		return (
-			<>
-				<ManualForm
-					handleSubmit={handleSubmit}
-					handleChange={handleChange}
-					value={{
-						distanceInKm: data.distanceInKm,
-						pricePerKm: data.pricePerKm,
-					}}
-				/>
-				<button onClick={() => setIsManual(false)}>Click</button>
-			</>
-		);
-	}
+	const manualFormComponent = (
+		<ManualForm
+			handleSubmit={handleSubmit}
+			handleChange={handleChange}
+			value={{
+				distanceInKm: data.distanceInKm,
+				pricePerKm: data.pricePerKm,
+			}}
+		/>
+	);
+
+	const advancedFormComponent = (
+		<AdvancedForm
+			handleSubmit={handleSubmit}
+			handleChange={handleChange}
+			value={data.pricePerKm}
+		/>
+	);
+
+	const resultComponent = (
+		<Result
+			distanceInKm={data.distanceInKm}
+			totalCost={totalCost}
+			pricePerKm={data.pricePerKm}
+			defaultRate={{
+				van: vanTotalCost,
+				lorry: lorryTotalCost,
+			}}
+		/>
+	);
 
 	return (
 		<>
-			<AdvancedForm
-				handleClick={handleClick}
-				handleOrigin={handleOrigin}
-				handleDestination={handleDestination}
-				handleSubmit={handleSubmit}
-				handleChange={handleChange}
-				value={data.pricePerKm}
-			/>
-			<button onClick={() => setIsManual(true)}>Click</button>
+			<h1>Route Cost Calculator</h1>
+			<Button onClick={switchManual}>Click</Button>
+			{isManual ? manualFormComponent : advancedFormComponent}
+			<div>
+				<p>Default rates</p>
+				<ul>
+					<li>Van – €0.25/Km</li>
+					<li>Lorry – €0.50/Km</li>
+				</ul>
+			</div>
+			{showResult && resultComponent}
+			{!isManual && showResult ? (
+				<Map
+					origin={{ lng: data.originLng, lat: data.originLat }}
+					destination={{ lng: data.destinationLng, lat: data.destinationLat }}
+				/>
+			) : (
+				''
+			)}
 		</>
 	);
 };
