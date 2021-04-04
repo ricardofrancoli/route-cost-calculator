@@ -2,11 +2,10 @@ import React, { useRef, useEffect } from 'react';
 import mapboxgl from 'mapbox-gl';
 
 import 'mapbox-gl/dist/mapbox-gl.css';
-import '../index.css';
 
 mapboxgl.accessToken = process.env.REACT_APP_API_TOKEN;
 
-const Map = ({ origin, destination }) => {
+const Map = ({ origin, destination, distanceInKm }) => {
 	const mapContainer = useRef();
 
 	useEffect(() => {
@@ -36,7 +35,7 @@ const Map = ({ origin, destination }) => {
 		];
 
 		map.fitBounds(bounds, { padding: 30 });
-	}, [origin, destination]);
+	}, [origin, destination, distanceInKm]);
 
 	return <div className='map-container' ref={mapContainer} />;
 };

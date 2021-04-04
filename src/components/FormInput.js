@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 
 import ManualForm from './ManualForm';
@@ -69,10 +69,6 @@ const FormInput = () => {
 			});
 	};
 
-	useEffect(() => {
-		fetchTownInfo();
-	}, []);
-
 	// If using AdvancedForm, find route using OSRM.org
 	const fetchMapData = async () => {
 		if (data.originLng && data.destinationLng) {
@@ -93,10 +89,6 @@ const FormInput = () => {
 				});
 		}
 	};
-
-	useEffect(() => {
-		fetchMapData();
-	}, []);
 
 	// When typing in form, change values from the data state accordingly
 	const handleChange = (event) => {
@@ -197,6 +189,7 @@ const FormInput = () => {
 				<Map
 					origin={{ lng: data.originLng, lat: data.originLat }}
 					destination={{ lng: data.destinationLng, lat: data.destinationLat }}
+					distanceInKm={data.distanceInKm}
 				/>
 			) : (
 				''
