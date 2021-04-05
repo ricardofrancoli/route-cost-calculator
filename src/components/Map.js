@@ -9,6 +9,7 @@ mapboxgl.accessToken = process.env.REACT_APP_API_TOKEN;
 const Map = ({ origin, destination, distanceInKm }) => {
 	const mapContainer = useRef();
 
+	// Compare previous distanceInKm value
 	const useCompare = (val) => {
 		const prevVal = usePrevious(val);
 		return prevVal !== val;
@@ -25,6 +26,7 @@ const Map = ({ origin, destination, distanceInKm }) => {
 	const hasItemIdChanged = useCompare(distanceInKm);
 
 	useEffect(() => {
+		// Only run this when distanceInKm has changed
 		if (hasItemIdChanged) {
 			const map = new mapboxgl.Map({
 				container: mapContainer.current,
