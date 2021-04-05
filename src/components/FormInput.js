@@ -44,7 +44,6 @@ const FormInput = () => {
 			let direction = townQuery.direction;
 
 			const delayCall = setTimeout(() => {
-				// const fetchTownInfo = async (townSearch, direction) => {
 				axios
 					.get('https://secure.geonames.org/searchJSON?', {
 						params: {
@@ -56,7 +55,6 @@ const FormInput = () => {
 					})
 					.then((response) => {
 						try {
-							console.log(response);
 							const townResult = response.data.geonames[0];
 							if (townResult) {
 								setData({ ...data, [direction]: townResult.toponymName });
@@ -77,8 +75,7 @@ const FormInput = () => {
 							console.log(err);
 						}
 					});
-				// };
-			}, 500);
+			}, 200);
 			return () => clearTimeout(delayCall);
 		}
 	}, [data, townQuery]);
