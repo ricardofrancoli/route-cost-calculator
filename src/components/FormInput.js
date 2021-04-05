@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
 import ManualForm from './ManualForm';
@@ -20,6 +20,8 @@ const FormInput = () => {
 		pricePerKm: 0,
 	});
 
+	const [townQuery, setTownQuery] = useState({});
+
 	const defaultRates = {
 		van: 0.25,
 		lorry: 0.5,
@@ -36,37 +38,50 @@ const FormInput = () => {
 	const [showResult, setShowResult] = useState(false);
 
 	// If using AdvancedForm, find coordinates using Geonames.org
-	const fetchTownInfo = async (townSearch, direction) => {
-		axios
-			.get(`https://secure.geonames.org/searchJSON?username=${api_key}`, {
-				params: {
-					q: townSearch,
-					orderby: 'relevance',
-					cities: 'cities5000',
-				},
-			})
-			.then((response) => {
-				try {
-					const townResult = response.data.geonames[0];
-					if (townResult) {
-						setData({ ...data, [direction]: townResult.toponymName });
-						direction === 'originName'
-							? setData({
-									...data,
-									originLng: townResult.lng,
-									originLat: townResult.lat,
-							  })
-							: setData({
-									...data,
-									destinationLng: townResult.lng,
-									destinationLat: townResult.lat,
-							  });
-					}
-				} catch (err) {
-					console.log(err);
-				}
-			});
-	};
+	useEffect(() => {
+		if (townQuery.search && townQuery.direction) {
+			let townSearch = townQuery.search;
+			let direction = townQuery.direction;
+
+			const delayCall = setTimeout(() => {
+				// const fetchTownInfo = async (townSearch, direction) => {
+				axios
+					.get('https://secure.geonames.org/searchJSON?', {
+						params: {
+							username: api_key,
+							q: townSearch,
+							orderby: 'relevance',
+							cities: 'cities5000',
+						},
+					})
+					.then((response) => {
+						try {
+							console.log(response);
+							const townResult = response.data.geonames[0];
+							if (townResult) {
+								setData({ ...data, [direction]: townResult.toponymName });
+								direction === 'originName'
+									? setData({
+											...data,
+											originLng: townResult.lng,
+											originLat: townResult.lat,
+									  })
+									: setData({
+											...data,
+											destinationLng: townResult.lng,
+											destinationLat: townResult.lat,
+									  });
+							}
+							setTownQuery({});
+						} catch (err) {
+							console.log(err);
+						}
+					});
+				// };
+			}, 500);
+			return () => clearTimeout(delayCall);
+		}
+	}, [data, townQuery]);
 
 	// If using AdvancedForm, find route using OSRM.org
 	const fetchMapData = async () => {
@@ -95,7 +110,12 @@ const FormInput = () => {
 		let name = event.target.name;
 
 		if (name === 'originName' || name === 'destinationName') {
-			fetchTownInfo(value, name);
+			// fetchTownInfo(value, name);
+			setTownQuery({
+				...townQuery,
+				search: value,
+				direction: name,
+			});
 			return;
 		}
 
