@@ -9,34 +9,51 @@ mapboxgl.accessToken = process.env.REACT_APP_API_TOKEN;
 const Map = ({ origin, destination, distanceInKm }) => {
 	const mapContainer = useRef();
 
-	useEffect(() => {
-		const map = new mapboxgl.Map({
-			container: mapContainer.current,
-			style: 'mapbox://styles/mapbox/streets-v11',
+	const useCompare = (val) => {
+		const prevVal = usePrevious(val);
+		return prevVal !== val;
+	};
+
+	const usePrevious = (val) => {
+		const ref = useRef();
+		useEffect(() => {
+			ref.current = val;
 		});
+		return ref.current;
+	};
 
-		// Origin Marker
-		new mapboxgl.Marker({
-			color: '#ff6961',
-		})
-			.setLngLat([origin.lng, origin.lat])
-			.addTo(map);
+	const hasItemIdChanged = useCompare(distanceInKm);
 
-		// Destination Marker
-		new mapboxgl.Marker({
-			color: '#77dd77',
-		})
-			.setLngLat([destination.lng, destination.lat])
-			.addTo(map);
+	useEffect(() => {
+		if (hasItemIdChanged) {
+			const map = new mapboxgl.Map({
+				container: mapContainer.current,
+				style: 'mapbox://styles/mapbox/streets-v11',
+			});
 
-		// Create bounds between both markers and center it
-		const bounds = [
-			[origin.lng, origin.lat],
-			[destination.lng, destination.lat],
-		];
+			// Origin Marker
+			new mapboxgl.Marker({
+				color: '#ff6961',
+			})
+				.setLngLat([origin.lng, origin.lat])
+				.addTo(map);
 
-		map.fitBounds(bounds, { padding: 30 });
-	}, [origin, destination, distanceInKm]);
+			// Destination Marker
+			new mapboxgl.Marker({
+				color: '#77dd77',
+			})
+				.setLngLat([destination.lng, destination.lat])
+				.addTo(map);
+
+			// Create bounds between both markers and center it
+			const bounds = [
+				[origin.lng, origin.lat],
+				[destination.lng, destination.lat],
+			];
+
+			map.fitBounds(bounds, { padding: 30 });
+		}
+	}, [origin, destination, hasItemIdChanged]);
 
 	return (
 		<div className='map-container'>
