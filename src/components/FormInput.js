@@ -20,7 +20,10 @@ const FormInput = () => {
 		pricePerKm: 0,
 	});
 
-	const [townQuery, setTownQuery] = useState({});
+	const [townQuery, setTownQuery] = useState({
+		search: '',
+		direction: '',
+	});
 
 	const defaultRates = {
 		van: 0.25,
@@ -39,10 +42,10 @@ const FormInput = () => {
 
 	// If using AdvancedForm, find coordinates using Geonames.org
 	useEffect(() => {
-		if (townQuery.search && townQuery.direction) {
-			let townSearch = townQuery.search;
-			let direction = townQuery.direction;
+		let townSearch = townQuery.search;
+		let direction = townQuery.direction;
 
+		if (townSearch && direction) {
 			const delayCall = setTimeout(() => {
 				axios
 					.get('https://secure.geonames.org/searchJSON?', {
@@ -75,30 +78,29 @@ const FormInput = () => {
 							console.log(err);
 						}
 					});
-			}, 200);
+			}, 100);
 			return () => clearTimeout(delayCall);
 		}
 	}, [data, townQuery]);
 
 	// If using AdvancedForm, find route using OSRM.org
 	const fetchMapData = async () => {
-		if (data.originLng && data.destinationLng) {
-			axios
-				.get(
-					`https://router.project-osrm.org/route/v1/driving/${data.originLng},${data.originLat};${data.destinationLng},${data.destinationLat}`
-				)
-				.then((response) => {
-					try {
-						// Change API data from 'm' to 'Km'
-						const distance = parseFloat(
-							response.data.routes[0].distance / 1000
-						).toFixed(2);
-						setData({ ...data, distanceInKm: distance });
-					} catch (err) {
-						console.log(err);
-					}
-				});
-		}
+		console.log('HEY');
+		axios
+			.get(
+				`https://router.project-osrm.org/route/v1/driving/${data.originLng},${data.originLat};${data.destinationLng},${data.destinationLat}`
+			)
+			.then((response) => {
+				try {
+					// Change API data from 'm' to 'Km'
+					const distance = parseFloat(
+						response.data.routes[0].distance / 1000
+					).toFixed(2);
+					setData({ ...data, distanceInKm: distance });
+				} catch (err) {
+					console.log(err);
+				}
+			});
 	};
 
 	// When typing in form, change values from the data state accordingly
@@ -106,8 +108,8 @@ const FormInput = () => {
 		let value = event.target.value;
 		let name = event.target.name;
 
+		// if it comes from the origin or name form inputs (from component AdvancedForm)
 		if (name === 'originName' || name === 'destinationName') {
-			// fetchTownInfo(value, name);
 			setTownQuery({
 				...townQuery,
 				search: value,
